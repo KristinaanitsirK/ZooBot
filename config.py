@@ -1,6 +1,6 @@
 import docx
 
-TOKEN = '6383154545:AAEPCxcoWfVBst0sb7x-WTnmoMn1ylfkRkw'
+TOKEN = 'my_token'
 
 ANIMAL_IMAGES = {
     'капибара': 'images/kapibara.jpeg',
