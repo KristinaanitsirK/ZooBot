@@ -40,9 +40,9 @@ QUESTIONS = [
     {
         'question': '4. Какой цвет вам больше нравится?',
         'answers': {
-            'чёрный': ['медоед', 'пингвин'],
-            'оранжевый': ['малая панда', 'сурикат'],
-            'коричневый': ['капибара', 'альпака', 'выдра', 'морж']
+            'Чёрный': ['медоед', 'пингвин'],
+            'Оранжевый': ['малая панда', 'сурикат'],
+            'Коричневый': ['капибара', 'альпака', 'выдра', 'морж']
         }
     },
     {
@@ -105,6 +105,17 @@ COMMANDS = {
 class UserData:
     def __init__(self, user_id):
         self.user_id = user_id
+        self.reset()
+
+    def score(self, animals):
+        for animal in animals:
+            self.scores[animal] += 1
+
+    def get_winner(self):
+        return max(self.scores, key=self.scores.get)
+
+    def reset(self):
+        print(f'Resetting data for user {self.user_id}')
         self.current_question = 0
         self.scores = {'капибара': 0,
                        'медоед': 0,
@@ -113,15 +124,9 @@ class UserData:
                        'сурикат': 0,
                        'выдра': 0,
                        'пингвин' : 0,
-                       'морж' : 0
+                       'морж' : 0,
+
                        }
-
-    def score(self, animals):
-        for animal in animals:
-            self.scores[animal] += 1
-
-    def get_winner(self):
-        return max(self.scores, key=self.scores.get)
 
 
 
