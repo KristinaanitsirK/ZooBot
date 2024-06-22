@@ -1,6 +1,11 @@
 import docx
+from dotenv import load_dotenv
+import os
 
-TOKEN = '6383154545:AAEPCxcoWfVBst0sb7x-WTnmoMn1ylfkRkw'
+
+load_dotenv()
+
+TOKEN = os.getenv('TOKEN')
 
 ANIMAL_IMAGES = {
     'капибара': 'images/kapibara.jpeg',
