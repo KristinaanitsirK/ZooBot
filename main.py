@@ -1,7 +1,10 @@
 import telebot
 from telebot import types
-from config import TOKEN, QUESTIONS, COMMANDS, ANIMAL_IMAGES, UserData, get_animal_facts
-
+from config import (TOKEN, QUESTIONS, COMMANDS, ANIMAL_IMAGES,
+                    UserData, get_animal_facts, validate_animal,
+                    get_facts_text)
+from extensions import (BOTException, AnimalNotFoundException,
+                        AnimalImageNotFoundException, InvalidCommandException)
 
 
 
@@ -104,13 +107,7 @@ def determine_winner(user_id):
     image_path = ANIMAL_IMAGES.get(winner)
     facts = get_animal_facts(winner)
 
-    if image_path:
-        with open(image_path, 'rb') as photo:
-            bot.send_photo(user_id, photo, caption=f'Ваше тотемное животное: {winner}!')
-
-    if facts:
-        facts_text = '\n \n'.join(facts[:3])
-        bot.send_message(user_id, f'Вот три интересных факта о животном {winner}:\n \n {facts_text}')
+    send_animal_info(user_id, winner, image_path, facts)
 
     markup = types.InlineKeyboardMarkup()
     markup.add(types.InlineKeyboardButton(text='Попробовать ещё раз', callback_data='restart'))
@@ -119,25 +116,48 @@ def determine_winner(user_id):
 то напиши /animals и получишь полный список животных', reply_markup=markup)
 
 
+def send_animal_info(chat_id, animal, image_path, facts):
+    if image_path:
+        with open(image_path, 'rb') as photo:
+            bot.send_photo(chat_id, photo, caption=f'Ваше тотемное животное: {animal}!')
+
+    if facts:
+        facts_text = get_facts_text(animal, facts)
+        bot.send_message(chat_id, f'Вот три интересных факта о животном {animal}:\n\n{facts_text}')
+    else:
+        raise AnimalNotFoundException(animal)
+
 @bot.message_handler(commands=['animals'])
 def animals_list(message):
     animals = '\n'.join(ANIMAL_IMAGES.keys())
     text = ('Чтобы узнать интересные факты об интересуюшем тебя животном, просто напиши мне его название!')
-    bot.send_message(message.chat.id, f'Доступные животные:\n{animals} \n \n {text}')
+    bot.send_message(message.chat.id, f'Доступные животные:\n \n {animals} \n \n {text}')
 
 
-@bot.message_handler(commands=['text'])
-def animal_facts():
-    pass
+@bot.message_handler(content_types=['text'])
+def handle_text(message: telebot.types.Message):
+    animal = message.text.lower()
+    try:
+        if message.text.startswith('/'):
+            command = message.text.split()[0]
+            if command not in COMMANDS:
+                raise InvalidCommandException(command)
 
+        validate_animal(animal, ANIMAL_IMAGES)
+        facts = get_animal_facts(animal)
+        image_path = ANIMAL_IMAGES.get(animal)
 
+        if not image_path:
+            raise AnimalImageNotFoundException(animal)
 
+        send_animal_info(message.chat.id, animal, image_path, facts)
 
-
-
-
-
-
+    except AnimalNotFoundException as e:
+        bot.reply_to(message, str(e))
+    except InvalidCommandException as e:
+        bot.reply_to(message, e)
+    except BOTException as e:
+        bot.reply_to(message, e)
 
 
 bot.polling(none_stop=True)

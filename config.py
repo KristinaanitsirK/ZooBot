@@ -1,7 +1,7 @@
 import docx
 from dotenv import load_dotenv
 import os
-
+from extensions import AnimalNotFoundException
 
 load_dotenv()
 
@@ -146,3 +146,14 @@ def get_animal_facts(animal):
                 break
              facts.append(paragraph.text)
     return facts
+
+def validate_animal(animal, available_animals):
+    if animal not in available_animals:
+        raise AnimalNotFoundException(animal)
+
+def get_facts_text(animal, facts):
+    if facts:
+        return '\n \n'.join(facts[:3])
+    else:
+        return f'К сожалению, я не нашел фактов о животном {animal}'
+
