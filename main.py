@@ -47,24 +47,17 @@ quiz_data = {}
 @bot.message_handler(commands=['quiz'])
 def start_quiz(message):
     user_id = message.from_user.id
-    print(f'starting quiz for user {user_id}')
 
-    if not message.from_user.is_bot:
-        if user_id not in quiz_data:
-            print(f'Initializing new data for user {user_id}')
-            quiz_data[user_id] = UserData(user_id)
-        else:
-            print(f'resetting quiz data for user {user_id}')
-            quiz_data[user_id].reset()
-
-        send_question(user_id)
+    if user_id not in quiz_data:
+        quiz_data[user_id] = UserData(user_id)
     else:
-        print(f'Error: Cannot start quiz for bot user {user_id}')
+        quiz_data[user_id].reset()
+
+    send_question(user_id)
 
 def send_question(user_id):
     user = quiz_data[user_id]
     question_index = user.current_question
-    print(f'Sending question {question_index} to user {user_id}')
 
     if question_index < len(QUESTIONS):
         question_data = QUESTIONS[question_index]
@@ -83,27 +76,15 @@ def send_question(user_id):
 @bot.callback_query_handler(func=lambda call: call.data == 'restart')
 def restart_quiz(call):
     user_id = call.from_user.id
-    print(f'Restarting quiz for user {user_id}')
-
-    if user_id in quiz_data:
-        quiz_data[user_id].reset
-        print(f'After reset, user {user_id} is on question {quiz_data[user_id].current_question}')
-        start_quiz(call.message)
-    else:
-        print(f'Error: User {user_id} not found in quiz_data')
+    quiz_data[user_id].reset()
+    start_quiz(call)
 
 
 @bot.callback_query_handler(func=lambda call: True)
 def handle_answer(call):
     user_id = call.from_user.id
-    print(f'Handling answer for user {user_id}')
-
-    if user_id not in quiz_data:
-        quiz_data[user_id] = UserData(user_id)
-
     user = quiz_data[user_id]
     question_index = user.current_question
-    print(f'User {user_id} is on question {question_index}')
     question_data = QUESTIONS[question_index]
     answers = question_data['answers']
 
@@ -136,9 +117,6 @@ def determine_winner(user_id):
 
     bot.send_message(user_id, 'Если хочешь узнать интересные факты о других животных, \
 то напиши /animals и получишь полный список животных', reply_markup=markup)
-
-
-
 
 
 @bot.message_handler(commands=['animals'])

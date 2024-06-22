@@ -1,5 +1,4 @@
 
-class APIException(Exception):
+class BOTException(Exception):
     pass
-
 

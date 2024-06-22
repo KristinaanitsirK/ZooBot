@@ -1,6 +1,6 @@
 import docx
 
-TOKEN = 'my_token'
+TOKEN = '6383154545:AAEPCxcoWfVBst0sb7x-WTnmoMn1ylfkRkw'
 
 ANIMAL_IMAGES = {
     'капибара': 'images/kapibara.jpeg',
@@ -115,7 +115,6 @@ class UserData:
         return max(self.scores, key=self.scores.get)
 
     def reset(self):
-        print(f'Resetting data for user {self.user_id}')
         self.current_question = 0
         self.scores = {'капибара': 0,
                        'медоед': 0,
@@ -125,7 +124,6 @@ class UserData:
                        'выдра': 0,
                        'пингвин' : 0,
                        'морж' : 0,
-
                        }
 
 
