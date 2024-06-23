@@ -1,11 +1,20 @@
 import docx
-from dotenv import load_dotenv
 import os
+import smtplib
+from dotenv import load_dotenv
 from extensions import AnimalNotFoundException
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
 
 load_dotenv()
 
 TOKEN = os.getenv('TOKEN')
+ADMIN_CHAT_ID = os.getenv('ADMIN_CHAT_ID')
+CONTACT_EMAIL = os.getenv('CONTACT_EMAIL')
+EMAIL_SMTP_SERVER = os.getenv('EMAIL_SMTP_SERVER')
+EMAIL_SMTP_PORT = os.getenv('EMAIL_SMTP_SERVER')
+EMAIL_FROM = 'your-email@example.com'
+EMAIL_PASSWORD = 'your-email-password'
 
 ANIMAL_IMAGES = {
     'капибара': 'images/kapibara.jpeg',
@@ -103,7 +112,6 @@ COMMANDS = {
     '/animals': 'список животных, о которых могу рассказать интересные факты',
     '/contact': 'связаться с сотрудником зоопарка',
     '/feedback': 'оставить отзыв',
-
 }
 
 
@@ -132,7 +140,6 @@ class UserData:
                        }
 
 
-
 def get_animal_facts(animal):
     facts = []
     doc = docx.Document('info/animal_facts.docx')
@@ -147,13 +154,90 @@ def get_animal_facts(animal):
              facts.append(paragraph.text)
     return facts
 
+
 def validate_animal(animal, available_animals):
     if animal not in available_animals:
         raise AnimalNotFoundException(animal)
+
 
 def get_facts_text(animal, facts):
     if facts:
         return '\n \n'.join(facts[:3])
     else:
         return f'К сожалению, я не нашел фактов о животном {animal}'
+
+
+def send_animal_info(bot, chat_id, animal, image_path, facts):
+    if image_path:
+        with open(image_path, 'rb') as photo:
+            bot.send_photo(chat_id, photo, caption=f'{animal}')
+
+    if facts:
+        facts_text = get_facts_text(animal, facts)
+        bot.send_message(chat_id, f'Вот три интересных факта о животном {animal}:\n\n{facts_text}')
+    else:
+        raise AnimalNotFoundException
+
+
+def start_text(first_name):
+    return (f'Привет, {first_name}! \n \n'
+'\n'
+'Данный бот создан для популяризации программы опеки Московского Зоопарка.\
+Мы придумали для Вас викторину, на тему "Какое твоё тотемное животное?" \
+Чтобы пройти тест, напиши мне /quiz и я скажу тебе, какое именно твоё тотемное животное. \
+Для того, чтобы узнать больше возможностей данного бота, напиши /help.')
+
+
+def help_text():
+    text = 'Доступные команды бота: ' + '\n'
+    for key, value in COMMANDS.items():
+        text += f'{key}: {value};\n'
+    return text
+
+
+def care_text():
+    return ('Участие в программе «Клуб друзей зоопарка» — это помощь в содержании \
+наших обитателей, а также ваш личный вклад в дело сохранения биоразнообразия Земли \
+и развитие нашего зоопарка. Традиция опекать животных в Московском зоопарке возникло \
+с момента его создания в 1864г.'
+"\n"
+    'Опекать – значит помогать любимым животным. Взять под опеку можно разных \
+обитателей зоопарка, например, слона, льва, суриката или фламинго. Почётный статус \
+опекуна позволяет круглый год навещать подопечного, быть в курсе событий его жизни и самочувствия.'
+"\n"
+'Чтобы познакомиться получше с нашей программой опеки, \
+предлагаю посетить нашу домашнюю страничку: https://moscowzoo.ru/about/guardianship')
+
+
+def contact_text():
+    return (f'Если у вас есть вопросы или предложения, вы можете связаться с нами: \n \n'
+            'Email: zoopark@culture.mos.ru \n'
+            'Телефон: +7 (499) 252-29-51 \n \n'
+            'Больше контактов на страничке: \n'
+            'https://moscowzoo.ru/contacts')
+
+
+def send_email(subject, body, from_email, to_email):
+    msg = MIMEMultipart()
+    msg['From'] = from_email
+    msg['To'] = to_email
+    msg['Subject'] = subject
+
+    msg.attach(MIMEText(body, 'plain'))
+
+    try:
+        server = smtplib.SMTP(EMAIL_SMTP_SERVER, EMAIL_SMTP_PORT)
+        server.starttls()
+        server.login(EMAIL_FROM, EMAIL_PASSWORD)
+        text = msg.as_string()
+        server.sendmail(EMAIL_FROM, to_email, text)
+        server.quit()
+        print('Email sent successfully')
+    except Exception as e:
+        print(f'Failed to send email: {e}')
+
+
+def generate_result_text(username, winner):
+    return (f'Пользователь {username} прошёл викторину.'
+            f'Его тотемное животное: {winner}.')
 
