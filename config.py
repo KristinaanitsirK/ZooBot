@@ -12,8 +12,8 @@ TOKEN = os.getenv('TOKEN')
 ADMIN_CHAT_ID = os.getenv('ADMIN_CHAT_ID')
 CONTACT_EMAIL = os.getenv('CONTACT_EMAIL')
 EMAIL_SMTP_SERVER = os.getenv('EMAIL_SMTP_SERVER')
-EMAIL_SMTP_PORT = os.getenv('EMAIL_SMTP_SERVER')
-EMAIL_FROM = 'your-email@example.com'
+EMAIL_SMTP_PORT = os.getenv('EMAIL_SMTP_PORT')
+EMAIL_FROM = os.getenv('EMAIL_FROM')
 EMAIL_PASSWORD = os.getenv('EMAIL_PASSWORD')
 
 ANIMAL_IMAGES = {
@@ -220,16 +220,16 @@ def contact_text():
             'https://moscowzoo.ru/contacts')
 
 
-def send_email(subject, body, from_email, to_email):
+def send_email(subject, body, to_email):
     msg = MIMEMultipart()
-    msg['From'] = from_email
+    msg['From'] = EMAIL_FROM
     msg['To'] = to_email
     msg['Subject'] = subject
 
     msg.attach(MIMEText(body, 'plain'))
 
     try:
-        server = smtplib.SMTP(EMAIL_SMTP_SERVER, 587)
+        server = smtplib.SMTP(EMAIL_SMTP_SERVER, EMAIL_SMTP_PORT)
         server.starttls()
         server.login(EMAIL_FROM, EMAIL_PASSWORD)
         text = msg.as_string()

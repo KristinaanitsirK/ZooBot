@@ -156,14 +156,17 @@ def determine_winner(user_id):
 
 
 def process_email(message: telebot.types.Message):
+    print('Processing email...')
     user_email = message.text
     user_id = message.from_user.id
+    print(f'User email: {user_email}')
     user = quiz_data.get(user_id)
 
     if user:
         winner = user.get_winner()
-        result_text = generate_result_text(message.chat.username, winner)
-        send_email('Результат прохождения викторины', result_text, user_email, CONTACT_EMAIL)
+        # result_text = generate_result_text(message.chat.username, winner)
+        result_text = f'User: {message.chat.username}\nUser Email: {user_email}\nTotem Animal: {winner}'
+        send_email('Результат прохождения викторины', result_text, CONTACT_EMAIL)
         bot.reply_to(message, 'Ваш результат викторины был отправлен сотруднику на email.\n \n'
                               'Свяжемся с Вами в течение трёх рабочих дней.')
     else:
