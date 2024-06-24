@@ -82,10 +82,23 @@ def restart_quiz(call):
 
 
 @bot.callback_query_handler(func=lambda call: True)
+def generic_callback_handler(call):
+    if call.data in ['send_email', 'contact_info']:
+        handle_contact_option(call)
+    else:
+        print(f'Generic callback handler called with data: {call.data}')
+        handle_answer(call)
+
+
+
+@bot.callback_query_handler(func=lambda call: True)
 def handle_answer(call):
     user_id = call.from_user.id
     user = quiz_data[user_id]
     question_index = user.current_question
+
+    if user.quiz_complete:
+        return
 
     if question_index < len(QUESTIONS):
         question_data = QUESTIONS[question_index]
@@ -109,6 +122,10 @@ def handle_answer(call):
 
 def determine_winner(user_id):
     user = quiz_data[user_id]
+    if user.quiz_complete:
+        return
+
+    user.quiz_complete = True
     winner = user.get_winner()
     image_path = ANIMAL_IMAGES.get(winner)
     facts = get_animal_facts(winner)
@@ -138,15 +155,6 @@ def determine_winner(user_id):
     bot.send_message(user_id, 'Не забудьте ознакомиться с нашей программой опеки /care ')
 
 
-@bot.callback_query_handler(func=lambda call: call.data in ['send_email', 'contact_info'])
-def handle_contact_option(call):
-    if call.data == 'send_email':
-        msg = bot.send_message(call.message.chat.id, 'Пожалуйста, введите ваш email: ')
-        bot.register_next_step_handler(msg, process_email)
-    elif call.data == 'contact_info':
-        bot.send_message(call.message.chat.id, contact_text())
-
-
 def process_email(message: telebot.types.Message):
     user_email = message.text
     user_id = message.from_user.id
@@ -160,6 +168,18 @@ def process_email(message: telebot.types.Message):
                               'Свяжемся с Вами в течение трёх рабочих дней.')
     else:
         bot.reply_to(message, 'Произошла ошибка. Пожалуйста, пройдите викторину заново.')
+
+
+@bot.callback_query_handler(func=lambda call: call.data in ['send_email', 'contact_info'])
+def handle_contact_option(call):
+    print(f'Handling contact option {call.data}')
+    if call.data == 'send_email':
+        print('send email option selected')
+        msg = bot.send_message(call.message.chat.id, 'Пожалуйста, введите ваш email: ')
+        bot.register_next_step_handler(msg, process_email)
+    elif call.data == 'contact_info':
+        print('contact info option selected')
+        bot.send_message(call.message.chat.id, contact_text())
 
 
 @bot.message_handler(commands=['animals'])

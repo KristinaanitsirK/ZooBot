@@ -14,7 +14,7 @@ CONTACT_EMAIL = os.getenv('CONTACT_EMAIL')
 EMAIL_SMTP_SERVER = os.getenv('EMAIL_SMTP_SERVER')
 EMAIL_SMTP_PORT = os.getenv('EMAIL_SMTP_SERVER')
 EMAIL_FROM = 'your-email@example.com'
-EMAIL_PASSWORD = 'your-email-password'
+EMAIL_PASSWORD = os.getenv('EMAIL_PASSWORD')
 
 ANIMAL_IMAGES = {
     'капибара': 'images/kapibara.jpeg',
@@ -118,6 +118,8 @@ COMMANDS = {
 class UserData:
     def __init__(self, user_id):
         self.user_id = user_id
+        self.current_question = 0
+        self.quiz_complete = False
         self.reset()
 
     def score(self, animals):
@@ -138,6 +140,7 @@ class UserData:
                        'пингвин' : 0,
                        'морж' : 0,
                        }
+        self.quiz_complete = False
 
 
 def get_animal_facts(animal):
@@ -226,7 +229,7 @@ def send_email(subject, body, from_email, to_email):
     msg.attach(MIMEText(body, 'plain'))
 
     try:
-        server = smtplib.SMTP(EMAIL_SMTP_SERVER, EMAIL_SMTP_PORT)
+        server = smtplib.SMTP(EMAIL_SMTP_SERVER, 587)
         server.starttls()
         server.login(EMAIL_FROM, EMAIL_PASSWORD)
         text = msg.as_string()
