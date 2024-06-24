@@ -86,9 +86,7 @@ def generic_callback_handler(call):
     if call.data in ['send_email', 'contact_info']:
         handle_contact_option(call)
     else:
-        print(f'Generic callback handler called with data: {call.data}')
         handle_answer(call)
-
 
 
 @bot.callback_query_handler(func=lambda call: True)
@@ -139,8 +137,8 @@ def determine_winner(user_id):
     bot.send_message(user_id, 'Если хочешь узнать интересные факты о других животных, \
 то напиши /animals и получишь полный список животных', reply_markup=markup)
 
-    # bot.send_message(ADMIN_CHAT_ID, f"Пользователь {user_id} прошел викторину. "
-    #                                 f"Его тотемное животное: {winner}")
+    bot.send_message(ADMIN_CHAT_ID, f"Пользователь {user_id} прошел викторину. "
+                                    f"Его тотемное животное: {winner}")
 
     social_markup = types.InlineKeyboardMarkup()
     social_markup.add(types.InlineKeyboardButton(text='Поделиться в соцсетях',
@@ -164,8 +162,7 @@ def process_email(message: telebot.types.Message):
 
     if user:
         winner = user.get_winner()
-        # result_text = generate_result_text(message.chat.username, winner)
-        result_text = f'User: {message.chat.username}\nUser Email: {user_email}\nTotem Animal: {winner}'
+        result_text = generate_result_text(message.chat.username, user_email, winner)
         send_email('Результат прохождения викторины', result_text, CONTACT_EMAIL)
         bot.reply_to(message, 'Ваш результат викторины был отправлен сотруднику на email.\n \n'
                               'Свяжемся с Вами в течение трёх рабочих дней.')
@@ -175,13 +172,10 @@ def process_email(message: telebot.types.Message):
 
 @bot.callback_query_handler(func=lambda call: call.data in ['send_email', 'contact_info'])
 def handle_contact_option(call):
-    print(f'Handling contact option {call.data}')
     if call.data == 'send_email':
-        print('send email option selected')
         msg = bot.send_message(call.message.chat.id, 'Пожалуйста, введите ваш email: ')
         bot.register_next_step_handler(msg, process_email)
     elif call.data == 'contact_info':
-        print('contact info option selected')
         bot.send_message(call.message.chat.id, contact_text())
 
 

@@ -12,7 +12,6 @@ TOKEN = os.getenv('TOKEN')
 ADMIN_CHAT_ID = os.getenv('ADMIN_CHAT_ID')
 CONTACT_EMAIL = os.getenv('CONTACT_EMAIL')
 EMAIL_SMTP_SERVER = os.getenv('EMAIL_SMTP_SERVER')
-EMAIL_SMTP_PORT = os.getenv('EMAIL_SMTP_PORT')
 EMAIL_FROM = os.getenv('EMAIL_FROM')
 EMAIL_PASSWORD = os.getenv('EMAIL_PASSWORD')
 
@@ -229,7 +228,7 @@ def send_email(subject, body, to_email):
     msg.attach(MIMEText(body, 'plain'))
 
     try:
-        server = smtplib.SMTP(EMAIL_SMTP_SERVER, EMAIL_SMTP_PORT)
+        server = smtplib.SMTP(EMAIL_SMTP_SERVER, 587)
         server.starttls()
         server.login(EMAIL_FROM, EMAIL_PASSWORD)
         text = msg.as_string()
@@ -240,7 +239,8 @@ def send_email(subject, body, to_email):
         print(f'Failed to send email: {e}')
 
 
-def generate_result_text(username, winner):
+def generate_result_text(username, user_email, winner):
     return (f'Пользователь {username} прошёл викторину.'
-            f'Его тотемное животное: {winner}.')
+            f'Его тотемное животное: {winner}.'
+            f'Контактный э-майл: {user_email}')
 
